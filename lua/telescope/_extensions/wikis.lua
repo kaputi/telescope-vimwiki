@@ -35,8 +35,15 @@ local function get_wikis()
 
   -- print(vim.inspect(vim.g.vimwiki_list))
   for _, wiki_options in ipairs(vim.g.vimwiki_list) do
+    -- test for .wiki
     local wiki_index = wiki_options.path .. '/index.wiki' --TODO: add extension if avaiable else default
     local exists = Path:new(wiki_index):exists()
+
+    -- test for .md
+    if not exists then
+      wiki_index = wiki_options.path .. '/index.md'
+      exists = Path:new(wiki_index):exists()
+    end
 
     if exists then
       table.insert(wikis, {
@@ -65,21 +72,23 @@ local function select_wiki(opts)
   -- Use dropdown theme by default
   opts = themes.get_dropdown(opts)
 
-  pickers.new(opts, {
-    prompt_title = '-- Vimwiki --',
-    initial_mode = 'normal',
-    finder = finders.new_table({
-      results = get_wikis(),
-      entry_maker = function(entry)
-        return {
-          value = entry.index,
-          display = entry.name,
-          ordinal = entry.name,
-        }
-      end,
-    }),
-    sorter = sorters.get_fzy_sorter(),
-  }):find()
+  pickers
+    .new(opts, {
+      prompt_title = '-- Vimwiki --',
+      initial_mode = 'normal',
+      finder = finders.new_table({
+        results = get_wikis(),
+        entry_maker = function(entry)
+          return {
+            value = entry.index,
+            display = entry.name,
+            ordinal = entry.name,
+          }
+        end,
+      }),
+      sorter = sorters.get_fzy_sorter(),
+    })
+    :find()
 end
 
 return telescope.register_extension({
